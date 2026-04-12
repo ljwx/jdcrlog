@@ -5,19 +5,15 @@ import com.jdcr.jdcrlog.tree.CacheTree
 import com.jdcr.jdcrlog.tree.LevelFilterTree
 import timber.log.Timber
 
-open class JdcrLogBase(private val prefix: String = "jdcr_", feature: String = "log") {
+open class JdcrLogBase(private val prefix: String = "jdcr_", feature: String = "log") : LogBase {
 
     private val featureTag = prefix + feature
 
-    init {
-        enable(false)
-    }
-
-    fun enable(enable: Boolean, filePath: String? = null) {
+    override fun enable(debug: Boolean, filePath: String?) {
         synchronized(this) {
-            Log.d("jdcr_log", "是否开启日志:$enable,日志文件缓存路径:$filePath")
+            Log.d("jdcr_log", "是否开启debug日志:$debug,日志文件缓存路径:$filePath")
             Timber.uprootAll()
-            if (enable) {
+            if (debug) {
                 CacheTree.clearOld(filePath)
                 Timber.plant(Timber.DebugTree())
                 filePath?.let { Timber.plant(CacheTree(it)) }
@@ -27,63 +23,63 @@ open class JdcrLogBase(private val prefix: String = "jdcr_", feature: String = "
         }
     }
 
-    fun v(message: String?) {
+    override fun v(message: String?) {
         vT(featureTag, message)
     }
 
-    fun vF(feature: String, message: String?) {
+    override fun vF(feature: String, message: String?) {
         vT(prefix + feature, message)
     }
 
-    fun vT(tag: String, message: String?) {
+    override fun vT(tag: String, message: String?) {
         Timber.tag(tag).v(message)
     }
 
-    fun i(msg: String?, t: Throwable? = null) {
+    override fun i(msg: String?, t: Throwable?) {
         iT(featureTag, msg, t)
     }
 
-    fun iF(feature: String, msg: String?, t: Throwable? = null) {
+    override fun iF(feature: String, msg: String?, t: Throwable?) {
         iT(prefix + feature, msg, t)
     }
 
-    fun iT(tag: String, msg: String?, t: Throwable? = null) {
+    override fun iT(tag: String, msg: String?, t: Throwable?) {
         Timber.tag(tag).i(t, msg)
     }
 
-    fun d(msg: String?, t: Throwable? = null) {
+    override fun d(msg: String?, t: Throwable?) {
         dT(featureTag, msg, t)
     }
 
-    fun dF(feature: String, msg: String?, t: Throwable? = null) {
+    override fun dF(feature: String, msg: String?, t: Throwable?) {
         dT(prefix + feature, msg, t)
     }
 
-    fun dT(tag: String, msg: String?, t: Throwable? = null) {
+    override fun dT(tag: String, msg: String?, t: Throwable?) {
         Timber.tag(tag).d(t, msg)
     }
 
-    fun w(msg: String?, t: Throwable?) {
+    override fun w(msg: String?, t: Throwable?) {
         wT(featureTag, msg, t)
     }
 
-    fun wF(feature: String, msg: String?, t: Throwable? = null) {
+    override fun wF(feature: String, msg: String?, t: Throwable?) {
         wT(prefix + feature, msg, t)
     }
 
-    fun wT(tag: String, msg: String?, t: Throwable?) {
+    override fun wT(tag: String, msg: String?, t: Throwable?) {
         Timber.tag(tag).w(t, msg)
     }
 
-    fun e(t: Throwable?, msg: String?) {
-        eT(featureTag, t, msg)
+    override fun e(msg: String?, t: Throwable?) {
+        eT(featureTag, msg, t)
     }
 
-    fun eF(feature: String, t: Throwable? = null, msg: String?) {
-        eT(prefix + feature, t, msg)
+    override fun eF(feature: String, msg: String?, t: Throwable?) {
+        eT(prefix + feature, msg, t)
     }
 
-    fun eT(tag: String, t: Throwable?, msg: String?) {
+    override fun eT(tag: String, msg: String?, t: Throwable?) {
         Timber.tag(tag).e(t, msg)
     }
 

@@ -28,6 +28,8 @@ class MainActivity : ComponentActivity() {
             }
         }
         JdcrLog.enable(true, filePath = cacheDir.absolutePath+"/test/log.txt")
+        JdcrLog.v("做滴")
+        JdcrLog.d("做滴22")
         JdcrLog.i("做题")
     }
 }

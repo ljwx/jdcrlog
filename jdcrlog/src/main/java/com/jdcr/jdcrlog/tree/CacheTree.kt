@@ -9,7 +9,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class CacheTree(private val filePath: String) : Timber.Tree() {
+class CacheTree(private val filePath: String, miniLevel: Int? = null) : Timber.Tree() {
 
     companion object {
         private const val dateFormat = "MM-dd HH:mm:ss.SSS"
@@ -24,7 +24,7 @@ class CacheTree(private val filePath: String) : Timber.Tree() {
             if (!file.exists()) {
                 return
             }
-            val maxSize = 1024 * 1024 * 2
+            val maxSize = 1024 * 1024 * 1.5
             if (file.length() > maxSize) {
                 runCatching {
                     file.keepLastNLines(700)
@@ -35,7 +35,7 @@ class CacheTree(private val filePath: String) : Timber.Tree() {
 
     }
 
-    private val minLevel = Log.DEBUG
+    private val minLevel = miniLevel ?: Log.DEBUG
 
     private fun initFile(file: File) {
         val parent = file.parentFile
