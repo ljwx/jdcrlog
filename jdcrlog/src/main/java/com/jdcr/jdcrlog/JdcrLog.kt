@@ -28,62 +28,62 @@ open class JdcrLogBase(private val prefix: String = "jdcr_", feature: String = "
     }
 
     fun v(message: String?) {
-        v(featureTag, message)
+        vT(featureTag, message)
     }
 
     fun vF(feature: String, message: String?) {
-        v(prefix + feature, message)
+        vT(prefix + feature, message)
     }
 
-    fun v(tag: String, message: String?) {
+    fun vT(tag: String, message: String?) {
         Timber.tag(tag).v(message)
     }
 
     fun i(msg: String?, t: Throwable? = null) {
-        i(featureTag, msg, t)
+        iT(featureTag, msg, t)
     }
 
     fun iF(feature: String, msg: String?, t: Throwable? = null) {
-        i(prefix + feature, msg, t)
+        iT(prefix + feature, msg, t)
     }
 
-    fun i(tag: String, msg: String?, t: Throwable? = null) {
+    fun iT(tag: String, msg: String?, t: Throwable? = null) {
         Timber.tag(tag).i(t, msg)
     }
 
     fun d(msg: String?, t: Throwable? = null) {
-        d(featureTag, msg, t)
+        dT(featureTag, msg, t)
     }
 
     fun dF(feature: String, msg: String?, t: Throwable? = null) {
-        d(prefix + feature, msg, t)
+        dT(prefix + feature, msg, t)
     }
 
-    fun d(tag: String, msg: String?, t: Throwable? = null) {
+    fun dT(tag: String, msg: String?, t: Throwable? = null) {
         Timber.tag(tag).d(t, msg)
     }
 
     fun w(msg: String?, t: Throwable?) {
-        w(featureTag, msg, t)
+        wT(featureTag, msg, t)
     }
 
     fun wF(feature: String, msg: String?, t: Throwable? = null) {
-        w(prefix + feature, msg, t)
+        wT(prefix + feature, msg, t)
     }
 
-    fun w(tag: String, msg: String?, t: Throwable?) {
+    fun wT(tag: String, msg: String?, t: Throwable?) {
         Timber.tag(tag).w(t, msg)
     }
 
     fun e(t: Throwable?, msg: String?) {
-        e(featureTag, t, msg)
+        eT(featureTag, t, msg)
     }
 
     fun eF(feature: String, t: Throwable? = null, msg: String?) {
-        e(prefix + feature, t, msg)
+        eT(prefix + feature, t, msg)
     }
 
-    fun e(tag: String, t: Throwable?, msg: String?) {
+    fun eT(tag: String, t: Throwable?, msg: String?) {
         Timber.tag(tag).e(t, msg)
     }
 
