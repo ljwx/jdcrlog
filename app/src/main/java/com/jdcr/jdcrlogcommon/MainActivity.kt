@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
             }
         }
         JdcrLog.enable(true, filePath = cacheDir.absolutePath+"/test/log.txt")
-        JdcrLog.i("test", "做题")
+        JdcrLog.i("做题")
     }
 }
 

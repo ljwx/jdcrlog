@@ -28,6 +28,7 @@ class CacheTree(private val filePath: String) : Timber.Tree() {
             if (file.length() > maxSize) {
                 runCatching {
                     file.keepLastNLines(700)
+                    Log.w("jdcr_log", "日志缓存清理完成")
                 }
             }
         }
