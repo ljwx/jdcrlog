@@ -8,9 +8,13 @@ import com.jdcr.jdcrlog.log.LogBase
 
 open class JdcrLogBase : LogBase {
 
+    companion object {
+        var globalLogPrefix: String? = null
+    }
+
     private var prefix = "jdcr_"
     private var feature = "log"
-    private val featureTag by lazy { prefix + feature }
+    private val featureTag by lazy { (globalLogPrefix ?: prefix) + feature }
 
     fun setDefaultTag(prefix: String, feature: String = "log") {
         this.prefix = prefix
@@ -112,7 +116,7 @@ open class JdcrLogBase : LogBase {
 object JdcrLog : JdcrLogBase() {
 
     init {
-        setDefaultTag("jdcr2_", "log2")
+        setDefaultTag("jdcr_", "log")
     }
 
 }
