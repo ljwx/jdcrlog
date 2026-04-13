@@ -3,14 +3,14 @@ package com.jdcr.jdcrlog.tree
 import android.util.Log
 import com.jdcr.jdcrlog.JdcrLog
 import com.jdcr.jdcrlog.util.keepLastNLines
-import timber.log.Timber
+import com.jdcr.jdcrlog.log.JdcrTimber
 import java.io.File
 import java.io.FileWriter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class CacheTree(private val filePath: String, miniLevel: Int? = null) : Timber.Tree() {
+class CacheTree(private val filePath: String, miniLevel: Int? = null) : JdcrTimber.Tree() {
 
     companion object {
         private const val dateFormat = "MM-dd HH:mm:ss.SSS"
@@ -67,7 +67,16 @@ class CacheTree(private val filePath: String, miniLevel: Int? = null) : Timber.T
             writer = FileWriter(file, true)
             writer.use {
                 val time = sdf.format(Date())
-                writer.write("$time $tag: $message\n")
+                val level = when(priority) {
+                    Log.VERBOSE -> "V"
+                    Log.DEBUG -> "D"
+                    Log.INFO -> "I"
+                    Log.WARN -> "W"
+                    Log.ERROR -> "E"
+                    Log.ASSERT -> "A"
+                    else -> "U"
+                }
+                writer.write("$time $tag: $level $message\n")
                 if (t != null) {
                     writer.write("${Log.getStackTraceString(t)}\n")
                 }

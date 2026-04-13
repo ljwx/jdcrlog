@@ -3,19 +3,22 @@ package com.jdcr.jdcrlog
 import android.util.Log
 import com.jdcr.jdcrlog.tree.CacheTree
 import com.jdcr.jdcrlog.tree.LevelFilterTree
-import timber.log.Timber
+import com.jdcr.jdcrlog.log.JdcrTimber
+import com.jdcr.jdcrlog.log.LogBase
 
-object JdcrLog : LogBase {
+open class JdcrLogBase : LogBase {
 
-    var globalLogPrefix = "jdcr_"
-    var globalLogFeature = "log"
+    private var prefix = "jdcr_"
+    private var feature = "log"
+    private val featureTag by lazy { prefix + feature }
 
-    private val prefix = globalLogPrefix
-    private val feature = globalLogFeature
-    private val featureTag = prefix + feature
+    fun setDefaultTag(prefix: String, feature: String = "log") {
+        this.prefix = prefix
+        this.feature = feature
+    }
 
     private inline fun <reified T> hasPlanted(): Boolean {
-        return Timber.forest().any { it is T }
+        return JdcrTimber.forest().any { it is T }
     }
 
     override fun enable(debug: Boolean, filePath: String?) {
@@ -23,22 +26,25 @@ object JdcrLog : LogBase {
             Log.d("jdcr_log", "初始化,是否开启debug日志:$debug,日志文件缓存路径:$filePath")
             if (debug) {
                 CacheTree.clearOld(filePath)
-                if (!hasPlanted<Timber.DebugTree>()) {
-                    Timber.plant(Timber.DebugTree())
+                if (!hasPlanted<JdcrTimber.DebugTree>()) {
+                    Log.d("jdcr_log", "添加debug树")
+                    JdcrTimber.plant(JdcrTimber.DebugTree())
                 }
                 if (!hasPlanted<CacheTree>()) {
-                    filePath?.let { Timber.plant(CacheTree(it)) }
+                    Log.d("jdcr_log", "添加cache树")
+                    filePath?.let { JdcrTimber.plant(CacheTree(it, Log.DEBUG)) }
                 }
             } else {
                 if (!hasPlanted<LevelFilterTree>()) {
-                    Timber.plant(LevelFilterTree())
+                    Log.d("jdcr_log", "添加level树")
+                    JdcrTimber.plant(LevelFilterTree(Log.INFO))
                 }
             }
         }
     }
 
     internal fun selfTree(tag: String?): Boolean {
-        return tag?.startsWith(globalLogPrefix) == true
+        return tag?.startsWith(prefix) == true
     }
 
     override fun v(message: String?) {
@@ -50,7 +56,7 @@ object JdcrLog : LogBase {
     }
 
     override fun vT(tag: String, message: String?) {
-        Timber.tag(tag).v(message)
+        JdcrTimber.tag(tag).v(message)
     }
 
     override fun i(msg: String?, t: Throwable?) {
@@ -62,7 +68,7 @@ object JdcrLog : LogBase {
     }
 
     override fun iT(tag: String, msg: String?, t: Throwable?) {
-        Timber.tag(tag).i(t, msg)
+        JdcrTimber.tag(tag).i(t, msg)
     }
 
     override fun d(msg: String?, t: Throwable?) {
@@ -74,7 +80,7 @@ object JdcrLog : LogBase {
     }
 
     override fun dT(tag: String, msg: String?, t: Throwable?) {
-        Timber.tag(tag).d(t, msg)
+        JdcrTimber.tag(tag).d(t, msg)
     }
 
     override fun w(msg: String?, t: Throwable?) {
@@ -86,7 +92,7 @@ object JdcrLog : LogBase {
     }
 
     override fun wT(tag: String, msg: String?, t: Throwable?) {
-        Timber.tag(tag).w(t, msg)
+        JdcrTimber.tag(tag).w(t, msg)
     }
 
     override fun e(msg: String?, t: Throwable?) {
@@ -98,7 +104,15 @@ object JdcrLog : LogBase {
     }
 
     override fun eT(tag: String, msg: String?, t: Throwable?) {
-        Timber.tag(tag).e(t, msg)
+        JdcrTimber.tag(tag).e(t, msg)
+    }
+
+}
+
+object JdcrLog : JdcrLogBase() {
+
+    init {
+        setDefaultTag("jdcr2_", "log2")
     }
 
 }

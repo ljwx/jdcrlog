@@ -1,4 +1,4 @@
-package com.jdcr.jdcrlog
+package com.jdcr.jdcrlog.log
 
 interface LogBase {
 

@@ -2,9 +2,9 @@ package com.jdcr.jdcrlog.tree
 
 import android.util.Log
 import com.jdcr.jdcrlog.JdcrLog
-import timber.log.Timber
+import com.jdcr.jdcrlog.log.JdcrTimber
 
-class LevelFilterTree(miniLevel: Int? = null) : Timber.Tree() {
+class LevelFilterTree(miniLevel: Int? = null) : JdcrTimber.Tree() {
 
     private val minLevel = miniLevel ?: Log.INFO
 

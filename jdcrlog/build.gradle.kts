@@ -39,7 +39,7 @@ dependencies {
 //    androidTestImplementation(libs.runner)
 //    androidTestImplementation(libs.espresso.core)
 
-    api("com.jakewharton.timber:timber:5.0.1")
+//    api("com.jakewharton.timber:timber:5.0.1")
 }
 
 afterEvaluate {
