@@ -1,6 +1,7 @@
 package com.jdcr.jdcrlog.tree
 
 import android.util.Log
+import com.jdcr.jdcrlog.JdcrLog
 import timber.log.Timber
 
 class LevelFilterTree(miniLevel: Int? = null) : Timber.Tree() {
@@ -13,6 +14,9 @@ class LevelFilterTree(miniLevel: Int? = null) : Timber.Tree() {
         message: String,
         t: Throwable?
     ) {
+        if (!JdcrLog.selfTree(tag)) {
+            return
+        }
         if (priority < minLevel) {
             return
         }

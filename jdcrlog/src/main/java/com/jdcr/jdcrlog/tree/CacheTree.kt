@@ -1,6 +1,7 @@
 package com.jdcr.jdcrlog.tree
 
 import android.util.Log
+import com.jdcr.jdcrlog.JdcrLog
 import com.jdcr.jdcrlog.util.keepLastNLines
 import timber.log.Timber
 import java.io.File
@@ -53,6 +54,9 @@ class CacheTree(private val filePath: String, miniLevel: Int? = null) : Timber.T
         message: String,
         t: Throwable?
     ) {
+        if (!JdcrLog.selfTree(tag)) {
+            return
+        }
         if (priority < minLevel) {
             return
         }
