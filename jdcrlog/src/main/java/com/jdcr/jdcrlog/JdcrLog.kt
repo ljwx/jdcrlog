@@ -10,15 +10,21 @@ open class JdcrLogBase : LogBase {
 
     companion object {
         var globalLogPrefix: String? = null
+        internal val baseLogTag = "jdcr_log_base"
     }
 
-    private var prefix = "jdcr_"
+    private var prefix = "jdcr"
     private var feature = "log"
-    private val featureTag by lazy { (globalLogPrefix ?: prefix) + feature }
+    private var partition: String? = null
+    private val defaultTag by lazy {
+        (globalLogPrefix
+            ?: prefix) + "_$feature" + (if (partition.isNullOrEmpty()) "" else "_$partition")
+    }
 
-    fun setDefaultTag(prefix: String, feature: String = "log") {
+    fun setDefaultTag(prefix: String = "ctl", feature: String = "log", partition: String? = null) {
         this.prefix = prefix
         this.feature = feature
+        this.partition = partition
     }
 
     private inline fun <reified T> hasPlanted(): Boolean {
@@ -27,32 +33,29 @@ open class JdcrLogBase : LogBase {
 
     override fun enable(debug: Boolean, filePath: String?) {
         synchronized(this) {
-            Log.d("jdcr_log", "初始化,是否开启debug日志:$debug,日志文件缓存路径:$filePath")
+            Log.d(baseLogTag, "初始化,是否开启debug日志:$debug,日志文件缓存路径:$filePath")
             if (debug) {
                 CacheTree.clearOld(filePath)
                 if (!hasPlanted<JdcrTimber.DebugTree>()) {
-                    Log.d("jdcr_log", "添加debug树")
+                    Log.d(baseLogTag, "添加debug树")
                     JdcrTimber.plant(JdcrTimber.DebugTree())
                 }
                 if (!hasPlanted<CacheTree>()) {
-                    Log.d("jdcr_log", "添加cache树")
+                    Log.d(baseLogTag, "添加cache树")
                     filePath?.let { JdcrTimber.plant(CacheTree(it, Log.DEBUG)) }
                 }
             } else {
                 if (!hasPlanted<LevelFilterTree>()) {
-                    Log.d("jdcr_log", "添加level树")
+                    Log.d(baseLogTag, "添加level树")
                     JdcrTimber.plant(LevelFilterTree(Log.INFO))
                 }
             }
+            Log.d(baseLogTag, "初始化完成,默认tag:$defaultTag")
         }
     }
 
-    internal fun selfTree(tag: String?): Boolean {
-        return tag?.startsWith(prefix) == true
-    }
-
     override fun v(message: String?) {
-        vT(featureTag, message)
+        vT(defaultTag, message)
     }
 
     override fun vF(feature: String, message: String?) {
@@ -64,7 +67,7 @@ open class JdcrLogBase : LogBase {
     }
 
     override fun i(msg: String?, t: Throwable?) {
-        iT(featureTag, msg, t)
+        iT(defaultTag, msg, t)
     }
 
     override fun iF(feature: String, msg: String?, t: Throwable?) {
@@ -76,7 +79,7 @@ open class JdcrLogBase : LogBase {
     }
 
     override fun d(msg: String?, t: Throwable?) {
-        dT(featureTag, msg, t)
+        dT(defaultTag, msg, t)
     }
 
     override fun dF(feature: String, msg: String?, t: Throwable?) {
@@ -88,7 +91,7 @@ open class JdcrLogBase : LogBase {
     }
 
     override fun w(msg: String?, t: Throwable?) {
-        wT(featureTag, msg, t)
+        wT(defaultTag, msg, t)
     }
 
     override fun wF(feature: String, msg: String?, t: Throwable?) {
@@ -100,7 +103,7 @@ open class JdcrLogBase : LogBase {
     }
 
     override fun e(msg: String?, t: Throwable?) {
-        eT(featureTag, msg, t)
+        eT(defaultTag, msg, t)
     }
 
     override fun eF(feature: String, msg: String?, t: Throwable?) {
@@ -116,7 +119,7 @@ open class JdcrLogBase : LogBase {
 object JdcrLog : JdcrLogBase() {
 
     init {
-        setDefaultTag("jdcr_", "log")
+        setDefaultTag("jdcr", "log")
     }
 
 }

@@ -1,7 +1,7 @@
 package com.jdcr.jdcrlog.tree
 
 import android.util.Log
-import com.jdcr.jdcrlog.JdcrLog
+import com.jdcr.jdcrlog.JdcrLogBase
 import com.jdcr.jdcrlog.util.keepLastNLines
 import com.jdcr.jdcrlog.log.JdcrTimber
 import java.io.File
@@ -25,11 +25,11 @@ class CacheTree(private val filePath: String, miniLevel: Int? = null) : JdcrTimb
             if (!file.exists()) {
                 return
             }
-            val maxSize = 1024 * 1024 * 1.5
+            val maxSize = 1024 * 1024 * 1.8
             if (file.length() > maxSize) {
                 runCatching {
-                    file.keepLastNLines(700)
-                    Log.w("jdcr_log", "日志缓存清理完成")
+                    file.keepLastNLines(850)
+                    Log.w(JdcrLogBase.baseLogTag, "日志缓存清理完成")
                 }
             }
         }
@@ -54,9 +54,6 @@ class CacheTree(private val filePath: String, miniLevel: Int? = null) : JdcrTimb
         message: String,
         t: Throwable?
     ) {
-        if (!JdcrLog.selfTree(tag)) {
-            return
-        }
         if (priority < minLevel) {
             return
         }
@@ -83,6 +80,7 @@ class CacheTree(private val filePath: String, miniLevel: Int? = null) : JdcrTimb
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.w(JdcrLogBase.baseLogTag, "缓存日志出现异常", e)
         }
     }
 }

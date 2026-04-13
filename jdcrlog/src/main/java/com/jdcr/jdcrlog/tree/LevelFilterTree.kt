@@ -2,6 +2,7 @@ package com.jdcr.jdcrlog.tree
 
 import android.util.Log
 import com.jdcr.jdcrlog.JdcrLog
+import com.jdcr.jdcrlog.JdcrLogBase
 import com.jdcr.jdcrlog.log.JdcrTimber
 
 class LevelFilterTree(miniLevel: Int? = null) : JdcrTimber.Tree() {
@@ -14,13 +15,10 @@ class LevelFilterTree(miniLevel: Int? = null) : JdcrTimber.Tree() {
         message: String,
         t: Throwable?
     ) {
-        if (!JdcrLog.selfTree(tag)) {
-            return
-        }
         if (priority < minLevel) {
             return
         }
-        val newTag = tag ?: "jdcr_log"
+        val newTag = tag ?: JdcrLogBase.baseLogTag
         if (priority == Log.ASSERT) {
             Log.wtf(newTag, message)
         } else {
