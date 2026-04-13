@@ -21,7 +21,7 @@ open class JdcrLogBase : LogBase {
             ?: prefix) + "_$feature" + (if (partition.isNullOrEmpty()) "" else "_$partition")
     }
 
-    fun setDefaultTag(prefix: String = "ctl", feature: String = "log", partition: String? = null) {
+    fun setDefaultTag(prefix: String = "jdcr", feature: String = "log", partition: String? = null) {
         this.prefix = prefix
         this.feature = feature
         this.partition = partition
