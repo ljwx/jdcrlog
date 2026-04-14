@@ -13,16 +13,14 @@ open class JdcrLogBase : LogBase {
         internal val baseLogTag = "jdcr_log_base"
     }
 
-    private var prefix = "jdcr"
+    private val prefix by lazy { (globalLogPrefix ?: "jdcr") + "_" }
     private var feature = "log"
     private var partition: String? = null
     private val defaultTag by lazy {
-        (globalLogPrefix
-            ?: prefix) + "_$feature" + (if (partition.isNullOrEmpty()) "" else "_$partition")
+        prefix + feature + (if (partition.isNullOrEmpty()) "" else "_$partition")
     }
 
-    fun setDefaultTag(prefix: String = "jdcr", feature: String = "log", partition: String? = null) {
-        this.prefix = prefix
+    fun setDefaultTag(feature: String = "log", partition: String? = null) {
         this.feature = feature
         this.partition = partition
     }
@@ -119,7 +117,7 @@ open class JdcrLogBase : LogBase {
 object JdcrLog : JdcrLogBase() {
 
     init {
-        setDefaultTag("jdcr", "log")
+        setDefaultTag("log")
     }
 
 }

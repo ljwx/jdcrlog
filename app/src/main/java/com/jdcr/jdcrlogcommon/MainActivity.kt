@@ -30,6 +30,7 @@ class MainActivity : ComponentActivity() {
         JdcrLog.v("做滴")
         JdcrLog.d("做滴22")
         JdcrLog.i("做题")
+        JdcrLog.iF("ljwx","做题")
     }
 }
 
