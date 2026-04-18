@@ -1,5 +1,7 @@
 package com.jdcr.jdcrlog.tree
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.jdcr.jdcrlog.JdcrLogBase
 import com.jdcr.jdcrlog.util.keepLastNLines
@@ -37,6 +39,20 @@ class CacheTree(private val filePath: String, miniLevel: Int? = null) : JdcrTimb
     }
 
     private val minLevel = miniLevel ?: Log.DEBUG
+    private val handler = Handler(Looper.getMainLooper())
+    private val cache = ArrayList<String>(32)
+    private val task = object : Runnable {
+        override fun run() {
+            if (cache.isNotEmpty()) {
+                writeLog()
+            }
+            handler.postDelayed(this, 1250)
+        }
+    }
+
+    init {
+        handler.postDelayed(task, 1250)
+    }
 
     private fun initFile(file: File) {
         val parent = file.parentFile
@@ -57,30 +73,57 @@ class CacheTree(private val filePath: String, miniLevel: Int? = null) : JdcrTimb
         if (priority < minLevel) {
             return
         }
+        cache.add(getMessage(priority, tag, message, t))
+    }
+
+    private fun writeLog() {
+        val iterator = cache.iterator()
+        val result = buildString {
+            while (iterator.hasNext()) {
+                val item = iterator.next()
+                append(item)
+                iterator.remove()
+            }
+        }
+        writeFile(result)
+    }
+
+    private fun getMessage(
+        priority: Int,
+        tag: String?,
+        message: String,
+        t: Throwable?
+    ): String {
+        val time = sdf.format(Date())
+        val level = when (priority) {
+            Log.VERBOSE -> "V"
+            Log.DEBUG -> "D"
+            Log.INFO -> "I"
+            Log.WARN -> "W"
+            Log.ERROR -> "E"
+            Log.ASSERT -> "A"
+            else -> "U"
+        }
+        return if (t == null) {
+            "$time $tag: $level $message\n"
+        } else {
+            "$time $tag: $level $message\n${Log.getStackTraceString(t)}\n"
+        }
+    }
+
+    private fun writeFile(message: String) {
         var writer: FileWriter?
         try {
             val file = File(filePath)
             initFile(file)
             writer = FileWriter(file, true)
             writer.use {
-                val time = sdf.format(Date())
-                val level = when(priority) {
-                    Log.VERBOSE -> "V"
-                    Log.DEBUG -> "D"
-                    Log.INFO -> "I"
-                    Log.WARN -> "W"
-                    Log.ERROR -> "E"
-                    Log.ASSERT -> "A"
-                    else -> "U"
-                }
-                writer.write("$time $tag: $level $message\n")
-                if (t != null) {
-                    writer.write("${Log.getStackTraceString(t)}\n")
-                }
+                writer.write(message)
             }
         } catch (e: Exception) {
             e.printStackTrace()
             Log.w(JdcrLogBase.baseLogTag, "缓存日志出现异常", e)
         }
     }
+
 }
