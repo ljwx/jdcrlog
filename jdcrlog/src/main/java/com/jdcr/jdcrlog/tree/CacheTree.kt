@@ -105,9 +105,9 @@ class CacheTree(private val filePath: String, miniLevel: Int? = null) : JdcrTimb
             else -> "U"
         }
         return if (t == null) {
-            "$time $tag: $level $message\n"
+            "$time $level $tag: $message\n"
         } else {
-            "$time $tag: $level $message\n${Log.getStackTraceString(t)}\n"
+            "$time $level $tag: $message\n${Log.getStackTraceString(t)}\n"
         }
     }
 
