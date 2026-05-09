@@ -1,7 +1,5 @@
 package com.jdcr.jdcrlog.tree
 
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import com.jdcr.jdcrlog.JdcrLogBase
 import com.jdcr.jdcrlog.util.keepLastNLines
@@ -11,13 +9,15 @@ import java.io.FileWriter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.locks.ReentrantLock
 
 class CacheTree(private val filePath: String, miniLevel: Int? = null) : JdcrTimber.Tree() {
 
     companion object {
-        private const val dateFormat = "MM-dd HH:mm:ss.SSS"
-
-        private val sdf = SimpleDateFormat(dateFormat, Locale.getDefault())
 
         fun clearOld(filePath: String?) {
             if (filePath.isNullOrEmpty()) {
@@ -39,19 +39,25 @@ class CacheTree(private val filePath: String, miniLevel: Int? = null) : JdcrTimb
     }
 
     private val minLevel = miniLevel ?: Log.DEBUG
-    private val handler = Handler(Looper.getMainLooper())
     private val cache = ArrayList<String>(32)
-    private val task = object : Runnable {
-        override fun run() {
-            if (cache.isNotEmpty()) {
+    private val lock = ReentrantLock()
+    private val released = AtomicBoolean(false)
+    private val executor = Executors.newSingleThreadScheduledExecutor()
+    private val flushTask: ScheduledFuture<*> = executor.scheduleWithFixedDelay(
+        {
+            if (!released.get()) {
                 writeLog()
             }
-            handler.postDelayed(this, 1250)
-        }
-    }
+        },
+        1250,
+        1250,
+        TimeUnit.MILLISECONDS
+    )
 
-    init {
-        handler.postDelayed(task, 1250)
+    private val sdfThreadLocal = object : ThreadLocal<SimpleDateFormat>() {
+        override fun initialValue(): SimpleDateFormat {
+            return SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.getDefault())
+        }
     }
 
     private fun initFile(file: File) {
@@ -70,21 +76,33 @@ class CacheTree(private val filePath: String, miniLevel: Int? = null) : JdcrTimb
         message: String,
         t: Throwable?
     ) {
-        if (priority < minLevel) {
+        if (released.get() || priority < minLevel) {
             return
         }
-        cache.add(getMessage(priority, tag, message, t))
+        lock.lock()
+        try {
+            if (released.get()) {
+                return
+            }
+            cache.add(getMessage(priority, tag, message, t))
+        } finally {
+            lock.unlock()
+        }
     }
 
     private fun writeLog() {
-        val iterator = cache.iterator()
-        val result = buildString {
-            while (iterator.hasNext()) {
-                val item = iterator.next()
-                append(item)
-                iterator.remove()
-            }
+        val batch = ArrayList<String>()
+        lock.lock()
+        try {
+            batch.addAll(cache)
+            cache.clear()
+        } finally {
+            lock.unlock()
         }
+        if (batch.isEmpty()) {
+            return
+        }
+        val result = buildString { batch.forEach { append(it) } }
         writeFile(result)
     }
 
@@ -94,7 +112,7 @@ class CacheTree(private val filePath: String, miniLevel: Int? = null) : JdcrTimb
         message: String,
         t: Throwable?
     ): String {
-        val time = sdf.format(Date())
+        val time = sdfThreadLocal.get().format(Date())
         val level = when (priority) {
             Log.VERBOSE -> "V"
             Log.DEBUG -> "D"
@@ -124,6 +142,21 @@ class CacheTree(private val filePath: String, miniLevel: Int? = null) : JdcrTimb
             e.printStackTrace()
             Log.w(JdcrLogBase.baseLogTag, "缓存日志出现异常", e)
         }
+    }
+
+    fun release() {
+        if (!released.compareAndSet(false, true)) {
+            return
+        }
+        // Wait for any in-flight log() calls that already passed the fast-path check.
+        lock.lock()
+        try {
+        } finally {
+            lock.unlock()
+        }
+        flushTask.cancel(false)
+        executor.execute { writeLog() }
+        executor.shutdown()
     }
 
 }

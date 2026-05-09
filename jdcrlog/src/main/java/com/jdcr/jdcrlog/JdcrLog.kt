@@ -29,11 +29,24 @@ open class JdcrLogBase : LogBase {
         return JdcrTimber.forest().any { it is T }
     }
 
+    private inline fun <reified T> clearTree() {
+        JdcrTimber.forest().forEach {
+            if (it is T) {
+                if (it is CacheTree) {
+                    it.release()
+                }
+                JdcrTimber.uproot(it)
+                Log.d(baseLogTag, "移除:${it.javaClass.name}")
+            }
+        }
+    }
+
     override fun enable(debug: Boolean, filePath: String?) {
         synchronized(this) {
             Log.d(baseLogTag, "初始化,是否开启debug日志:$debug,日志文件缓存路径:$filePath")
             if (debug) {
                 CacheTree.clearOld(filePath)
+                clearTree<LevelFilterTree>()
                 if (!hasPlanted<JdcrTimber.DebugTree>()) {
                     Log.d(baseLogTag, "添加debug树")
                     JdcrTimber.plant(JdcrTimber.DebugTree())
@@ -43,6 +56,8 @@ open class JdcrLogBase : LogBase {
                     filePath?.let { JdcrTimber.plant(CacheTree(it, Log.DEBUG)) }
                 }
             } else {
+                clearTree<CacheTree>()
+                clearTree<JdcrTimber.DebugTree>()
                 if (!hasPlanted<LevelFilterTree>()) {
                     Log.d(baseLogTag, "添加level树")
                     JdcrTimber.plant(LevelFilterTree(Log.INFO))
