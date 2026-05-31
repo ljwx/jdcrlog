@@ -11,6 +11,7 @@ open class JdcrLogBase : LogBase {
     companion object {
         var globalLogPrefix: String? = null
         internal val baseLogTag = "jdcr_log_base"
+        internal var filePath: String? = null
     }
 
     private val prefix by lazy { (globalLogPrefix ?: "jdcr") + "_" }
@@ -54,6 +55,7 @@ open class JdcrLogBase : LogBase {
                 if (!hasPlanted<CacheTree>()) {
                     Log.d(baseLogTag, "添加cache树")
                     filePath?.let { JdcrTimber.plant(CacheTree(it, Log.DEBUG)) }
+                    Companion.filePath = filePath
                 }
             } else {
                 clearTree<CacheTree>()

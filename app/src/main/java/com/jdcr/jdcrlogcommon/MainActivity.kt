@@ -1,6 +1,7 @@
 package com.jdcr.jdcrlogcommon
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,11 +11,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.lifecycleScope
 import com.jdcr.jdcrlog.JdcrLog
+import com.jdcr.jdcrlog.util.JdcrLogUtils
 import com.jdcr.jdcrlogcommon.ui.theme.JdcrLogCommonTheme
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,27 +28,14 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        JdcrLog.enable(true, filePath = cacheDir.absolutePath+"/test/log.txt")
-        JdcrLog.enable(true, filePath = cacheDir.absolutePath+"/test/log.txt")
-        JdcrLog.enable(true, filePath = cacheDir.absolutePath+"/test/log.txt")
-        lifecycleScope.launch(Dispatchers.Main) {
-            for (i in 0..40) {
-                JdcrLog.v("日志v:$i")
+        JdcrLog.enable(true, filePath = cacheDir.absolutePath + "/test/log.txt")
+        for (i in 0..10) {
+            JdcrLogUtils.getLatest().onSuccess {
+                it.forEachIndexed { index, string ->
+                    Log.d("jdcr_log_base", "$string")
+                }
             }
         }
-        lifecycleScope.launch(Dispatchers.Main) {
-            for (i in 0..40) {
-                JdcrLog.d("日志d:$i")
-            }
-        }
-        lifecycleScope.launch(Dispatchers.Main) {
-            for (i in 0..40) {
-                JdcrLog.i("日志i:$i")
-            }
-        }
-        JdcrLog.d("做滴22")
-        JdcrLog.i("做题")
-        JdcrLog.iF("ljwx","做题")
     }
 }
 
