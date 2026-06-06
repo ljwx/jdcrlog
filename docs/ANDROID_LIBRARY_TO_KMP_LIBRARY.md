@@ -237,3 +237,56 @@
 10. **回滚预案**
    - 保留上一个稳定版本号；
    - 若发现兼容问题可快速回退依赖版本。
+
+---
+
+## 11. Android 消费项目要不要改结构（重点）
+
+结论先说：
+
+- **纯 Android 项目不一定要改成 KMP 结构**，通常不需要；
+- 但需要按消费方式做最小调整，否则容易出现变体解析错误。
+
+### 11.1 纯 Android 项目（推荐做法）
+
+如果消费方项目本身还是 `com.android.application + org.jetbrains.kotlin.android`，建议直接依赖 Android 变体：
+
+```kotlin
+implementation("com.github.ljwx.jdcrlog:jdcrlog-android:<version>")
+```
+
+这样最稳，能避免被错误解析到 `js/desktop/debug` 产物。
+
+### 11.2 KMP 项目（commonMain 需要共享）
+
+如果消费方本身是 KMP 项目，并且希望在 `commonMain` 使用日志 API，才建议依赖根坐标：
+
+```kotlin
+commonMain.dependencies {
+    implementation("com.github.ljwx.jdcrlog:jdcrlog:<version>")
+}
+```
+
+前提是发布仓库中对应平台产物齐全，且变体元数据可正确解析。
+
+### 11.3 常见报错与对应处理
+
+1. **`Unresolved reference: kotlinOptions`**
+   - 原因：消费项目切了 KMP 插件，但仍沿用 `android { kotlinOptions {} }` 老写法；
+   - 处理：放到 `kotlin { android { compilations.all { kotlinOptions.jvmTarget = "11" } } }`。
+
+2. **错误解析到 `-debug` 或 `-js` 产物**
+   - 原因：发布了过多变体，或消费侧环境较老导致属性匹配异常；
+   - 处理：纯 Android 项目优先依赖 `*-android` 工件。
+
+3. **`Could not GET ... 401 Unauthorized`（JitPack）**
+   - 原因：坐标拼错、仓库权限/构建状态异常、SNAPSHOT 元数据不可用；
+   - 处理：先核对 group/artifact（例如 `com.github.ljwx.jdcrlog:jdcrlog-android`），再确认 JitPack 构建成功且仓库可访问。
+
+### 11.4 消费侧最小改造清单（纯 Android）
+
+1. `settings.gradle(.kts)` 中保留 `mavenCentral()`，并添加 `maven("https://jitpack.io")`（若用 JitPack）。
+2. 依赖先用 `jdcrlog-android`，确保构建稳定后再考虑切根坐标。
+3. 执行 `./gradlew app:assembleDebug` 验证。
+4. 启动 App 验证一条日志主链路。
+5. 对比升级前后 APK/AAB 体积（通常变化极小）。
