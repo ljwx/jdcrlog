@@ -10,20 +10,27 @@ actual open class JdcrLogBase : LogBase {
 
     companion object {
         var globalLogPrefix: String? = null
+            set(value) {
+                field = value
+                prefix = "${value ?: "jdcr"}_"
+            }
         internal val baseLogTag = "jdcr_log_base"
         internal var filePath: String? = null
+        private var prefix = "${globalLogPrefix ?: "jdcr"}_"
     }
 
-    private val prefix by lazy { (globalLogPrefix ?: "jdcr") + "_" }
     private var feature = "log"
     private var partition: String? = null
-    private val defaultTag by lazy {
-        prefix + feature + (if (partition.isNullOrEmpty()) "" else "_$partition")
+    private var defaultTag = prefix + feature
+
+    fun updateDefaultTag() {
+        defaultTag = prefix + feature + (if (partition.isNullOrEmpty()) "" else "_$partition")
     }
 
     actual fun setDefaultTag(feature: String, partition: String?) {
         this.feature = feature
         this.partition = partition
+        updateDefaultTag()
     }
 
     private inline fun <reified T> hasPlanted(): Boolean {
@@ -45,6 +52,7 @@ actual open class JdcrLogBase : LogBase {
     override fun enable(debug: Boolean, filePath: String?) {
         synchronized(this) {
             Log.d(baseLogTag, "初始化,是否开启debug日志:$debug,日志文件缓存路径:$filePath")
+            updateDefaultTag()
             if (debug) {
                 CacheTree.clearOld(filePath)
                 clearTree<LevelFilterTree>()
