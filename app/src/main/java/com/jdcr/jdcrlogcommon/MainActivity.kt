@@ -26,8 +26,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        JdcrLog.enable(true, filePath = cacheDir.absolutePath + "/test/log.txt")
+        JdcrLog.enable(true)
+        JdcrLog.setDefaultTag("111")
         JdcrLog.i("测试日志1")
+        JdcrLog.enable(false)
+        JdcrLog.setDefaultTag("222")
+        JdcrLog.i("测试日志2")
 //        for (i in 0..10) {
 //            JdcrLogUtils.getLatest().onSuccess {
 //                it.forEachIndexed { index, string ->

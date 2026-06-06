@@ -1,23 +1,33 @@
 package com.jdcr.jdcrlog
 
 import android.util.Log
+import com.jdcr.jdcrbase.JdcrAppUtils
 import com.jdcr.jdcrlog.tree.CacheTree
 import com.jdcr.jdcrlog.tree.LevelFilterTree
 import com.jdcr.jdcrlog.log.JdcrTimber
 import com.jdcr.jdcrlog.log.LogBase
+import com.jdcr.jdcrlog.tree.CacheTreeDB
+import com.jdcr.jdcrlog.tree.LogData
 
 actual open class JdcrLogBase : LogBase {
 
     companion object {
         val defaultPrefix = "jdcr"
+        internal val tagDelimiter = "_"
         var globalLogPrefix: String? = null
             set(value) {
                 field = value
-                prefix = "${value ?: defaultPrefix}_"
+                prefix = "${value ?: defaultPrefix}$tagDelimiter"
             }
-        internal val baseLogTag = "${defaultPrefix}_log_base"
-        internal var filePath: String? = null
-        private var prefix = "${globalLogPrefix ?: defaultPrefix}_"
+
+        @Volatile
+        var dbServer: ((ArrayList<LogData>) -> Unit)? = null
+        internal val baseLogTag = "${defaultPrefix}${tagDelimiter}log_base"
+        internal val filePath by lazy { JdcrAppUtils.getAppContext().cacheDir.absolutePath + "/debug/log/log.txt" }
+        private var prefix = "${globalLogPrefix ?: defaultPrefix}$tagDelimiter"
+
+        @Volatile
+        internal var miniLevel: Int = Log.INFO
     }
 
     private var feature = "log"
@@ -25,7 +35,8 @@ actual open class JdcrLogBase : LogBase {
     private var defaultTag = prefix + feature
 
     fun updateDefaultTag() {
-        defaultTag = prefix + feature + (if (partition.isNullOrEmpty()) "" else "_$partition")
+        defaultTag =
+            prefix + feature + (if (partition.isNullOrEmpty()) "" else "$tagDelimiter$partition")
     }
 
     actual fun setDefaultTag(feature: String, partition: String?) {
@@ -38,10 +49,13 @@ actual open class JdcrLogBase : LogBase {
         return JdcrTimber.forest().any { it is T }
     }
 
-    private inline fun <reified T> clearTree() {
+    private inline fun <reified T> removeTree() {
         JdcrTimber.forest().forEach {
             if (it is T) {
                 if (it is CacheTree) {
+                    it.release()
+                }
+                if (it is CacheTreeDB) {
                     it.release()
                 }
                 JdcrTimber.uproot(it)
@@ -50,32 +64,39 @@ actual open class JdcrLogBase : LogBase {
         }
     }
 
-    override fun enable(debug: Boolean, filePath: String?) {
+    private inline fun <reified T : JdcrTimber.Tree> plantTree(debug: Boolean, tree: T?) {
+        if (tree == null) return
+        if (!hasPlanted<T>()) {
+            Log.d(baseLogTag, "添加日志树:${T::class.java.simpleName}")
+            JdcrTimber.plant(tree)
+        }
+    }
+
+    fun setConfig(debug: Boolean) {
         synchronized(this) {
-            Log.d(baseLogTag, "初始化,是否开启debug日志:$debug,日志文件缓存路径:$filePath")
+            Log.d(baseLogTag, "初始化,是否开启debug日志:$debug")
             updateDefaultTag()
+            miniLevel = if (debug) Log.DEBUG else Log.INFO
             if (debug) {
-                CacheTree.clearOld(filePath)
-                clearTree<LevelFilterTree>()
-                if (!hasPlanted<JdcrTimber.DebugTree>()) {
-                    Log.d(baseLogTag, "添加debug树")
-                    JdcrTimber.plant(JdcrTimber.DebugTree())
-                }
-                if (!hasPlanted<CacheTree>()) {
-                    Log.d(baseLogTag, "添加cache树")
-                    filePath?.let { JdcrTimber.plant(CacheTree(it, Log.DEBUG)) }
-                    Companion.filePath = filePath
+                removeTree<LevelFilterTree>()
+                plantTree(true, JdcrTimber.DebugTree())
+                if (dbServer == null) {
+                    CacheTree.clearOld()
+                    plantTree(true, CacheTree())
+                } else {
+                    plantTree(true, CacheTreeDB())
                 }
             } else {
-                clearTree<CacheTree>()
-                clearTree<JdcrTimber.DebugTree>()
-                if (!hasPlanted<LevelFilterTree>()) {
-                    Log.d(baseLogTag, "添加level树")
-                    JdcrTimber.plant(LevelFilterTree(Log.INFO))
-                }
+                removeTree<CacheTree>()
+                removeTree<JdcrTimber.DebugTree>()
+                plantTree(false, LevelFilterTree())
             }
             Log.d(baseLogTag, "初始化完成,默认tag:$defaultTag")
         }
+    }
+
+    override fun enable(debug: Boolean, filePath: String?) {
+        setConfig(debug)
     }
 
     override fun v(message: String?) {

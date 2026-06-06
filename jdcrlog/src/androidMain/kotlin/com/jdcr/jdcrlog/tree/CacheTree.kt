@@ -15,15 +15,12 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 
-class CacheTree(private val filePath: String, miniLevel: Int? = null) : JdcrTimber.Tree() {
+internal class CacheTree : JdcrTimber.Tree() {
 
     companion object {
 
-        fun clearOld(filePath: String?) {
-            if (filePath.isNullOrEmpty()) {
-                return
-            }
-            val file = File(filePath)
+        fun clearOld() {
+            val file = File(JdcrLogBase.filePath)
             if (!file.exists()) {
                 return
             }
@@ -38,7 +35,7 @@ class CacheTree(private val filePath: String, miniLevel: Int? = null) : JdcrTimb
 
     }
 
-    private val minLevel = miniLevel ?: Log.DEBUG
+    private val minLevel = JdcrLogBase.miniLevel
     private val cache = ArrayList<String>(32)
     private val lock = ReentrantLock()
     private val released = AtomicBoolean(false)
@@ -132,7 +129,7 @@ class CacheTree(private val filePath: String, miniLevel: Int? = null) : JdcrTimb
     private fun writeFile(message: String) {
         var writer: FileWriter?
         try {
-            val file = File(filePath)
+            val file = File(JdcrLogBase.filePath)
             initFile(file)
             writer = FileWriter(file, true)
             writer.use {

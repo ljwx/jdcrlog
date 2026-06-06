@@ -34,6 +34,7 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 // 现有的 Android 特有依赖（如果有）
+                api("com.github.ljwx:JdcrDevBase:0.3.3-SNAPSHOT")
             }
         }
         val desktopMain by getting

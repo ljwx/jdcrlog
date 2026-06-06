@@ -22,6 +22,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven("https://download.jetbrains.com/kotlin/native/builds")
+        maven { setUrl("https://jitpack.io") }
     }
 }
 

@@ -11,7 +11,7 @@ import java.util.Collections.unmodifiableList
 import java.util.regex.Pattern
 
 /** Logging for lazy people. */
-class JdcrTimber private constructor() {
+internal class JdcrTimber private constructor() {
     init {
         throw AssertionError()
     }

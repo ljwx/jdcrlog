@@ -5,9 +5,9 @@ import com.jdcr.jdcrlog.JdcrLog
 import com.jdcr.jdcrlog.JdcrLogBase
 import com.jdcr.jdcrlog.log.JdcrTimber
 
-class LevelFilterTree(miniLevel: Int? = null) : JdcrTimber.Tree() {
+internal class LevelFilterTree : JdcrTimber.Tree() {
 
-    private val minLevel = miniLevel ?: Log.INFO
+    private val minLevel = JdcrLogBase.miniLevel
 
     override fun log(
         priority: Int,
