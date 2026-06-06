@@ -9,14 +9,15 @@ import com.jdcr.jdcrlog.log.LogBase
 actual open class JdcrLogBase : LogBase {
 
     companion object {
+        val defaultPrefix = "jdcr"
         var globalLogPrefix: String? = null
             set(value) {
                 field = value
-                prefix = "${value ?: "jdcr"}_"
+                prefix = "${value ?: defaultPrefix}_"
             }
-        internal val baseLogTag = "jdcr_log_base"
+        internal val baseLogTag = "${defaultPrefix}_log_base"
         internal var filePath: String? = null
-        private var prefix = "${globalLogPrefix ?: "jdcr"}_"
+        private var prefix = "${globalLogPrefix ?: defaultPrefix}_"
     }
 
     private var feature = "log"
