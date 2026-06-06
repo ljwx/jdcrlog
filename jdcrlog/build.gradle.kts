@@ -1,7 +1,53 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
+    id("com.android.library")
+    id("org.jetbrains.kotlin.multiplatform")
     `maven-publish`
+}
+
+kotlin {
+    android {
+        publishLibraryVariants("release", "debug")
+        compilations.all {
+            kotlinOptions.jvmTarget = "11"
+        }
+    }
+
+    jvm("desktop")
+
+    js(IR)
+
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                // 通用依赖（如果有）
+            }
+        }
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+        val androidMain by getting {
+            dependencies {
+                // 现有的 Android 特有依赖（如果有）
+            }
+        }
+        val desktopMain by getting
+        val jsMain by getting
+        val iosX64Main by getting
+        val iosArm64Main by getting
+        val iosSimulatorArm64Main by getting
+        val iosMain by creating {
+            dependsOn(commonMain)
+            iosX64Main.dependsOn(this)
+            iosArm64Main.dependsOn(this)
+            iosSimulatorArm64Main.dependsOn(this)
+        }
+    }
 }
 
 android {
@@ -11,7 +57,7 @@ android {
     defaultConfig {
         minSdk = 24
 
-        testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
 
@@ -28,31 +74,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-}
-
-dependencies {
-//    implementation(libs.appcompat.v7)
-//    testImplementation(libs.junit)
-//    androidTestImplementation(libs.runner)
-//    androidTestImplementation(libs.espresso.core)
-
-//    api("com.jakewharton.timber:timber:5.0.1")
 }
 
 afterEvaluate {
     publishing {
         publications {
-            create<MavenPublication>("release") {
-                from(components["release"]) //release debug
-                // JitPack 会自动填充 groupId 和 version，
-                // 但为了本地测试，你可以保留这些：
-                groupId = "com.github.jdcr"
-                artifactId = "jdcrlog"
-                version = "1.0.0-SNAPSHOT"
-            }
+            // kotlin multiplatform 插件会自动配置 maven publication
+            // 这个 release 的如果不需要可以注释掉，因为 kmp 插件会为你所有的 target 自动发布
         }
     }
 }

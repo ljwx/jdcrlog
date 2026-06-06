@@ -6,7 +6,7 @@ import com.jdcr.jdcrlog.tree.LevelFilterTree
 import com.jdcr.jdcrlog.log.JdcrTimber
 import com.jdcr.jdcrlog.log.LogBase
 
-open class JdcrLogBase : LogBase {
+actual open class JdcrLogBase : LogBase {
 
     companion object {
         var globalLogPrefix: String? = null
@@ -21,7 +21,7 @@ open class JdcrLogBase : LogBase {
         prefix + feature + (if (partition.isNullOrEmpty()) "" else "_$partition")
     }
 
-    fun setDefaultTag(feature: String = "log", partition: String? = null) {
+    actual fun setDefaultTag(feature: String, partition: String?) {
         this.feature = feature
         this.partition = partition
     }
@@ -131,7 +131,7 @@ open class JdcrLogBase : LogBase {
 
 }
 
-object JdcrLog : JdcrLogBase() {
+actual object JdcrLog : JdcrLogBase() {
 
     init {
         setDefaultTag("log")
