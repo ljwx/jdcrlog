@@ -24,6 +24,11 @@ dependencyResolutionManagement {
         maven("https://download.jetbrains.com/kotlin/native/builds")
         maven { setUrl("https://jitpack.io") }
     }
+    versionCatalogs {
+        create("jdcr") {
+            from("com.github.ljwx:JdcrDependencies:1.0.4")
+        }
+    }
 }
 
 rootProject.name = "JdcrLogCommon"

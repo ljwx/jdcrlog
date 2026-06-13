@@ -2,12 +2,12 @@ package com.jdcr.jdcrlog
 
 import android.util.Log
 import com.jdcr.jdcrbase.JdcrAppUtils
+import com.jdcr.jdcrbase.database.IDevBaseDatabaseLog
 import com.jdcr.jdcrlog.tree.CacheTree
 import com.jdcr.jdcrlog.tree.LevelFilterTree
 import com.jdcr.jdcrlog.log.JdcrTimber
 import com.jdcr.jdcrlog.log.LogBase
 import com.jdcr.jdcrlog.tree.CacheTreeDB
-import com.jdcr.jdcrlog.tree.LogData
 
 actual open class JdcrLogBase : LogBase {
 
@@ -21,7 +21,7 @@ actual open class JdcrLogBase : LogBase {
             }
 
         @Volatile
-        var dbServer: ((ArrayList<LogData>) -> Unit)? = null
+        var dbServer: IDevBaseDatabaseLog? = null
         internal val baseLogTag = "${defaultPrefix}${tagDelimiter}log_base"
         internal val filePath by lazy { JdcrAppUtils.getAppContext().cacheDir.absolutePath + "/debug/log/log.txt" }
         private var prefix = "${globalLogPrefix ?: defaultPrefix}$tagDelimiter"
@@ -95,8 +95,8 @@ actual open class JdcrLogBase : LogBase {
         }
     }
 
-    override fun enable(debug: Boolean, filePath: String?) {
-        setConfig(debug)
+    override fun enable(debugMode: Boolean) {
+        setConfig(debugMode)
     }
 
     override fun v(message: String?) {

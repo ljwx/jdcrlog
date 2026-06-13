@@ -4,7 +4,7 @@ import com.jdcr.jdcrlog.log.LogBase
 
 actual open class JdcrLogBase actual constructor() : LogBase {
     actual fun setDefaultTag(feature: String, partition: String?) {}
-    override fun enable(debug: Boolean, filePath: String?) {}
+    override fun enable(debugMode: Boolean) {}
     override fun v(msg: String?) {}
     override fun vF(feature: String, msg: String?) {}
     override fun vT(tag: String, msg: String?) {}

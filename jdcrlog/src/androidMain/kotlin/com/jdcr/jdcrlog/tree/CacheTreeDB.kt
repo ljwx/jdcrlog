@@ -3,6 +3,7 @@ package com.jdcr.jdcrlog.tree
 import android.util.Log
 import com.jdcr.jdcrbase.JdcrAppUtils
 import com.jdcr.jdcrbase.JdcrSafeCoroutineScope
+import com.jdcr.jdcrbase.log.JdcrLogData
 import com.jdcr.jdcrlog.JdcrLogBase
 import com.jdcr.jdcrlog.log.JdcrTimber
 import kotlinx.coroutines.CoroutineScope
@@ -13,23 +14,12 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.concurrent.locks.ReentrantLock
 
-data class LogData(
-    val tag: String?,
-    val message: String,
-    val level: Int,
-    val timestamp: Long,
-    val throwable: Throwable?,
-    val tagSplit: Triple<String?, String?, String?>?,
-    val versionCode: Long,
-    val versionName: String
-)
-
 internal class CacheTreeDB : JdcrTimber.Tree() {
 
     private val minLevel = JdcrLogBase.miniLevel
     private var coroutine = JdcrSafeCoroutineScope(Dispatchers.IO, tag = "jdcrLog")
     private val lock = ReentrantLock()
-    private val cache = ArrayList<LogData>(64)
+    private val cache = ArrayList<JdcrLogData>(64)
 
     init {
         coroutine.launch {
@@ -58,7 +48,7 @@ internal class CacheTreeDB : JdcrTimber.Tree() {
     }
 
     private fun writeLog() {
-        val batch = ArrayList<LogData>()
+        val batch = ArrayList<JdcrLogData>()
         lock.lock()
         try {
             batch.addAll(cache)
@@ -77,7 +67,7 @@ internal class CacheTreeDB : JdcrTimber.Tree() {
         tag: String?,
         message: String,
         t: Throwable?
-    ): LogData {
+    ): JdcrLogData {
 
         fun getTag(): Triple<String?, String?, String?>? {
             val list = tag?.split(JdcrLogBase.tagDelimiter) ?: return null
@@ -85,15 +75,15 @@ internal class CacheTreeDB : JdcrTimber.Tree() {
         }
 
         val time = System.currentTimeMillis()
-        return LogData(
+        return JdcrLogData(
             tag = tag, message = message, level = priority, time, t, getTag(),
             JdcrAppUtils.versionCode, JdcrAppUtils.versionName
         )
     }
 
-    private fun writeDB(logs: ArrayList<LogData>) {
+    private fun writeDB(logs: ArrayList<JdcrLogData>) {
         try {
-            JdcrLogBase.dbServer?.invoke(logs)
+            JdcrLogBase.dbServer?.write(logs)
         } catch (e: Exception) {
             Log.w(JdcrLogBase.baseLogTag, "缓存日志出现异常", e)
         }

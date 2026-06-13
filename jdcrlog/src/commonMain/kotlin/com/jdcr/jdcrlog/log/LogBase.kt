@@ -2,7 +2,7 @@ package com.jdcr.jdcrlog.log
 
 interface LogBase {
 
-    fun enable(debug: Boolean, filePath: String? = null)
+    fun enable(debugMode: Boolean)
 
     fun v(msg: String?)
 
