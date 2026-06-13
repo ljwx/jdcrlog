@@ -1,13 +1,14 @@
 package com.jdcr.jdcrlog
 
 import android.util.Log
-import com.jdcr.jdcrbase.JdcrAppUtils
+import com.jdcr.jdcrbase.app.JdcrAppUtils
 import com.jdcr.jdcrbase.database.IDevBaseDatabaseLog
 import com.jdcr.jdcrlog.tree.CacheTree
 import com.jdcr.jdcrlog.tree.LevelFilterTree
 import com.jdcr.jdcrlog.log.JdcrTimber
 import com.jdcr.jdcrlog.log.LogBase
 import com.jdcr.jdcrlog.tree.CacheTreeDB
+import kotlin.getValue
 
 actual open class JdcrLogBase : LogBase {
 

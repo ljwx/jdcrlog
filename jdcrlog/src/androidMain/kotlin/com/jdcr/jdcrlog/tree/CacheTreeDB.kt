@@ -1,12 +1,11 @@
 package com.jdcr.jdcrlog.tree
 
 import android.util.Log
-import com.jdcr.jdcrbase.JdcrAppUtils
-import com.jdcr.jdcrbase.JdcrSafeCoroutineScope
+import com.jdcr.jdcrbase.app.JdcrAppUtils
+import com.jdcr.jdcrbase.coroutine.JdcrSafeCoroutineScope
 import com.jdcr.jdcrbase.log.JdcrLogData
 import com.jdcr.jdcrlog.JdcrLogBase
 import com.jdcr.jdcrlog.log.JdcrTimber
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
@@ -47,7 +46,7 @@ internal class CacheTreeDB : JdcrTimber.Tree() {
         }
     }
 
-    private fun writeLog() {
+    private suspend fun writeLog() {
         val batch = ArrayList<JdcrLogData>()
         lock.lock()
         try {
@@ -87,11 +86,9 @@ internal class CacheTreeDB : JdcrTimber.Tree() {
         )
     }
 
-    private fun writeDB(logs: ArrayList<JdcrLogData>) {
-        try {
-            JdcrLogBase.dbServer?.write(logs)
-        } catch (e: Exception) {
-            Log.w(JdcrLogBase.baseLogTag, "缓存日志出现异常", e)
+    private suspend fun writeDB(logs: ArrayList<JdcrLogData>) {
+        JdcrLogBase.dbServer?.write(logs)?.onFailure {
+            Log.w(JdcrLogBase.baseLogTag, "缓存日志出现异常", it)
         }
     }
 
