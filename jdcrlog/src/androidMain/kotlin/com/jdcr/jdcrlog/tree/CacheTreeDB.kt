@@ -76,8 +76,14 @@ internal class CacheTreeDB : JdcrTimber.Tree() {
 
         val time = System.currentTimeMillis()
         return JdcrLogData(
-            tag = tag, message = message, level = priority, time, t, getTag(),
-            JdcrAppUtils.versionCode, JdcrAppUtils.versionName
+            logTag = tag ?: "null",
+            message = message,
+            level = priority.toLong(),
+            timestamp = time,
+            throwable = t,
+            tagSplit = getTag(),
+            JdcrAppUtils.versionCode,
+            JdcrAppUtils.versionName
         )
     }
 
